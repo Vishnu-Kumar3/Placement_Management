@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import Drive from '../models/Drive.js';
+import Application from '../models/Application.js';
+import { requireAuth } from '../middleware/auth.js';
+import { requireCoordinator } from '../middleware/roles.js';
+import { asyncRoute } from '../middleware/asyncRoute.js';
+const router = Router();
+router.get('/', requireAuth, asyncRoute(async (req,res)=>{const filter=req.query.status?{status:String(req.query.status)}:{};res.json(await Drive.find(filter).sort({driveDate:1}));}));
+router.post('/', requireAuth, requireCoordinator, asyncRoute(async (req,res)=>res.status(201).json(await Drive.create({...req.body,createdBy:req.user._id}))));
+router.patch('/:id', requireAuth, requireCoordinator, asyncRoute(async (req,res)=>{const doc=await Drive.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true});if(!doc)return res.status(404).json({message:'Drive not found.'});res.json(doc);}));
+router.delete('/:id', requireAuth, requireCoordinator, asyncRoute(async (req,res)=>{if(await Application.exists({drive:req.params.id}))return res.status(409).json({message:'This drive has applications. Remove those applications before deleting the drive.'});const doc=await Drive.findByIdAndDelete(req.params.id);if(!doc)return res.status(404).json({message:'Drive not found.'});res.json({message:'Drive deleted.'});}));
+export default router;

@@ -1,0 +1,26 @@
+{
+  "info": {
+    "name": "Placement Portal API",
+    "description": "Demo collection for the Express and MongoDB placement portal. Set baseUrl to http://localhost:5000/api and set token after login. Copy a studentId, driveId and applicationId from the GET responses for write requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key":"baseUrl","value":"http://localhost:5000/api"},
+    {"key":"token","value":""},
+    {"key":"studentId","value":""},
+    {"key":"driveId","value":""},
+    {"key":"applicationId","value":""}
+  ],
+  "item": [
+    {"name":"Health check","request":{"method":"GET","url":"{{baseUrl}}/health"}},
+    {"name":"Register","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Demo Student\",\n  \"email\": \"student@example.com\",\n  \"password\": \"ChangeThisPassword123!\"\n}"},"url":"{{baseUrl}}/auth/register"}},
+    {"name":"Login demo coordinator","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"email\": \"faculty@placement.demo\",\n  \"password\": \"PlacementDemo123!\"\n}"},"url":"{{baseUrl}}/auth/login"}},
+    {"name":"List students","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/students"}},
+    {"name":"List open drives","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/drives?status=Open"}},
+    {"name":"List applications","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/applications"}},
+    {"name":"Create application","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"studentId\": \"{{studentId}}\",\n  \"driveId\": \"{{driveId}}\"\n}"},"url":"{{baseUrl}}/applications"}},
+    {"name":"Update application status","request":{"method":"PATCH","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"status\": \"Shortlisted\",\n  \"note\": \"Postman demo update\"\n}"},"url":"{{baseUrl}}/applications/{{applicationId}}"}},
+    {"name":"Delete application","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/applications/{{applicationId}}"}},
+    {"name":"Dashboard aggregation","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/dashboard/summary"}}
+  ]
+}

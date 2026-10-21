@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import Student from '../models/Student.js';
+import Application from '../models/Application.js';
+import { requireAuth } from '../middleware/auth.js';
+import { requireCoordinator } from '../middleware/roles.js';
+import { asyncRoute } from '../middleware/asyncRoute.js';
+const router = Router();
+router.get('/', requireAuth, asyncRoute(async (_req,res)=>res.json(await Student.find().sort({rollNo:1}))));
+router.post('/', requireAuth, requireCoordinator, asyncRoute(async (req,res)=>res.status(201).json(await Student.create(req.body))));
+router.patch('/:id', requireAuth, requireCoordinator, asyncRoute(async (req,res)=>{const doc=await Student.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true});if(!doc)return res.status(404).json({message:'Student not found.'});res.json(doc);}));
+router.delete('/:id', requireAuth, requireCoordinator, asyncRoute(async (req,res)=>{if(await Application.exists({student:req.params.id}))return res.status(409).json({message:'This student has applications. Remove those applications before deleting the student.'});const doc=await Student.findByIdAndDelete(req.params.id);if(!doc)return res.status(404).json({message:'Student not found.'});res.json({message:'Student deleted.'});}));
+export default router;

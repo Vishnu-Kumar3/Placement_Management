@@ -1,0 +1,15 @@
+import { Router } from 'express';
+import multer from 'multer';
+import path from 'node:path';
+import fs from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { requireAuth } from '../middleware/auth.js';
+import { placementEvents } from '../services/events.js';
+const router=Router();const here=path.dirname(fileURLToPath(import.meta.url));
+const uploadRoot=path.resolve(here,'../../',process.env.UPLOAD_DIR||'uploads');fs.mkdirSync(uploadRoot,{recursive:true});
+const maxBytes=(Number(process.env.MAX_UPLOAD_MB)||5)*1024*1024;
+const storage=multer.diskStorage({destination:uploadRoot,filename:(_req,file,cb)=>cb(null,`${randomUUID()}${path.extname(file.originalname).toLowerCase()}`)});
+const upload=multer({storage,limits:{fileSize:maxBytes},fileFilter:(_req,file,cb)=>{const ok=['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.mimetype);if(ok)return cb(null,true);const error=new Error('Upload a PDF or Word document.');error.status=400;cb(error,false);}});
+router.post('/resume',requireAuth,upload.single('resume'),(req,res)=>{if(!req.file)return res.status(400).json({message:'Select a resume file.'});placementEvents.emit('resume:uploaded',{fileName:req.file.filename,size:req.file.size});res.status(201).json({url:`/uploads/${req.file.filename}`,originalName:path.basename(req.file.originalname)});});
+export default router;
